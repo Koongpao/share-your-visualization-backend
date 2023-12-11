@@ -1,12 +1,12 @@
 const { Router } = require("express");
-const Tags = require("../models/tagSchema");
+const TagsModel = require("../models/tagSchema");
 
 const router = Router();
 
-//getAllTag - /api/tag
+//getAllTag - /api/tags
 router.get("/", async (req, res) => {
     try {
-      const tags = await Tags.find();
+      const tags = await TagsModel.find();
   
       const response = {
         status: "success",

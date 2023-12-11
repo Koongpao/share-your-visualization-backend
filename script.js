@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Tag = require("./models/tagSchema");
+const TagsModel = require("./models/tagSchema");
 require("./db/connection");
 
 const tagNames = [
@@ -38,7 +38,7 @@ const tagNames2 = [
 
 async function initializeTags() {
   try {
-    const existingTags = await Tag.find();
+    const existingTags = await TagsModel.find();
 
     if (existingTags.length === 0) {
       // Create an array of tag objects with "approved" status
