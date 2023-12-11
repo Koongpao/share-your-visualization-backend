@@ -6,11 +6,25 @@ const router = Router();
 //getAllTag - /api/tag
 router.get("/", async (req, res) => {
     try {
-      const tags = await Tags.find();
-      res.json(tags);
+      const tags = await Tag.find();
+  
+      const response = {
+        status: "success",
+        message: "Tags retrieved successfully",
+        data: tags,
+      };
+  
+      res.json(response);
     } catch (error) {
-      console.error("Error fetching tags:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error("Error retrieving tags:", error);
+  
+      const errorResponse = {
+        status: "error",
+        message: "Failed to retrieve tags",
+        error: error.message,
+      };
+  
+      res.status(500).json(errorResponse);
     }
   });
 
