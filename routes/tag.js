@@ -6,7 +6,7 @@ const router = Router();
 //getAllTag - /api/tag
 router.get("/", async (req, res) => {
     try {
-      const tags = await Tag.find();
+      const tags = await Tags.find();
   
       const response = {
         status: "success",
