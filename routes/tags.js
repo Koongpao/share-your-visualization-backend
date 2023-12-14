@@ -15,15 +15,11 @@ router.get("/", async (req, res) => {
       status: "success",
       message: "Tags retrieved successfully",
       data: {
-        library: {
-          data: libraryTags,
-        },
-        tags: {
-          data: regularTags,
-        },
+        library: libraryTags,
+        tags: regularTags,
       },
     };
-    
+
     res.json(response);
   } catch (error) {
     console.error("Error retrieving tags:", error);
