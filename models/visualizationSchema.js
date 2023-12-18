@@ -22,6 +22,7 @@ const visualizationSchema = new mongoose.Schema({
     },
     code: {
         type: String,
+        lowercase: true,
     },
     library: {
         type: String,

@@ -3,7 +3,7 @@ const TagsModel = require("../models/tagSchema");
 
 const router = Router();
 
-//getAllTag - GET /api/tags
+//GetAllTag - GET /api/tags
 router.get("/", async (req, res) => {
   try {
     const tags = await TagsModel.find();
@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
       .map(({ name, is_library, status }) => ({ name, is_library, status }));
 
     const response = {
-      status: "success",
+      success: true,
       message: "Tags retrieved successfully",
       data: {
         library: libraryTags,
@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
     console.error("Error retrieving tags:", error);
 
     const errorResponse = {
-      status: "error",
+      success: false,
       message: "Failed to retrieve tags",
       error: error.message,
     };
