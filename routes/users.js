@@ -1,6 +1,9 @@
 const { Router } = require("express");
 const bcrypt = require("bcrypt");
 const UsersModel = require("../models/userSchema");
+const jwt = require("jsonwebtoken");
+
+const verifyToken = require("../middleware/authenticate");
 
 const router = Router();
 
@@ -19,7 +22,7 @@ router.post("/", async (req, res) => {
 
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ message: "Invalid email format", success: false});
+    return res.status(400).json({ message: "Invalid email format", success: false });
   }
 
   try {
@@ -48,8 +51,30 @@ router.post("/", async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully", success: true });
   } catch (error) {
-    console.error("Error during registration:", error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error", success: false, error: error });
+  }
+});
+
+//GetMyInformation - GET /api/users/me
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    userIdfromToken = req.decoded.userId;
+
+    const user = await UsersModel.findById(userIdfromToken);
+
+    const response = {
+      success: true,
+      message: "User information retrieved successfully",
+      data: {
+        username: user.username,
+        role: user.username,
+      },
+    };
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to retrieve user information" });
   }
 });
 

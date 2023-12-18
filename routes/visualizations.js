@@ -1,9 +1,9 @@
 const { Router } = require("express");
-const verifyIdentity = require("../middleware/authenticate")
+const verifyToken = require("../middleware/authenticate")
 
 const router = Router();
 
-router.get("/", verifyIdentity, (req, res) => {
+router.get("/", verifyToken, (req, res) => {
   user = req.user
   console.log(user)
   res.send("test")

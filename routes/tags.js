@@ -3,7 +3,7 @@ const TagsModel = require("../models/tagSchema");
 
 const router = Router();
 
-//GetAllTag - GET /api/tags
+// GetAllTags - GET /api/tags
 router.get("/", async (req, res) => {
   try {
     const tags = await TagsModel.find();
@@ -27,16 +27,11 @@ router.get("/", async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error("Error retrieving tags:", error);
-
-    const errorResponse = {
-      success: false,
-      message: "Failed to retrieve tags",
-      error: error.message,
-    };
-
-    res.status(500).json(errorResponse);
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to retrieve tags list" });
   }
 });
+
+
 
 module.exports = router;
