@@ -1,52 +1,54 @@
 const mongoose = require("mongoose");
 
 const visualizationSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
+  title: {
+    type: String,
+    required: true,
+  },
+  creator: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: "users",
+    required: true,
+  },
+  created_date: {
+    type: Date,
+    default: () => Date.now(),
+  },
+  description: {
+    type: String,
+  },
+  image: {
+    type: String,
+    required: true,
+  },
+  code: {
+    type: String,
+    lowercase: true,
+  },
+  library: {
+    type: String,
+    required: true,
+  },
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "tags",
     },
-    creator: {
-        type: String,
-        required: true,
+  ],
+  externalLink: {
+    type: String,
+  },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
     },
-    date: {
-        type: Date,
-        default: Date.now,
-    },
-    description: {
-        type: String,
-        required: true,
-    },
-    image: {
-        type: String,
-    },
-    code: {
-        type: String,
-        lowercase: true,
-    },
-    library: {
-        type: String,
-    },
-    tag: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "tags",
-        }
-    ],
-    externalLink: {
-        type: String,
-    },
-    likes: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "users",
-        }
-    ],
-    status: {
-        type: String,
-        enum: ["approved", "pending", "disapproved"],
-        default: "pending",
-    },
+  ],
+  status: {
+    type: String,
+    enum: ["approved", "pending", "disapproved"],
+    default: "pending",
+  },
 });
 
 const VisualizationsModel = mongoose.model("visualizations", visualizationSchema);
