@@ -26,8 +26,8 @@ const visualizationSchema = new mongoose.Schema({
     lowercase: true,
   },
   library: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "tags",
   },
   tags: [
     {

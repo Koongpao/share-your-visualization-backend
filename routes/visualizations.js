@@ -28,36 +28,103 @@ upload.single("image");
 
 const router = Router();
 
-router.get("/", verifyToken, (req, res) => {});
+// SearchVisualization - GET /api/visualizations?search_query=&?tags=
+router.get("/", async (req, res) => {
+  const searchQuery = req.query.search_query;
+  const tags = req.query.tags;
+  console.log(searchQuery, tags)
+  try {
+    let query = VisualizationModel.find();
+
+    query = query.find({status: "approved"})
+
+    if (searchQuery) {
+      query = query.find({ title: { $regex: searchQuery, $options: "i" } });
+    }
+
+    if (tags) {
+      const tagNames = tags.split(",");
+      const tagIds = await TagModel.find({ name: { $in: tagNames } }, "_id");
+      const tagIdsArray = tagIds.map((tag) => tag._id);
+      query = query.find({
+        $expr: {
+          $setIsSubset: [
+            tagIdsArray,
+            {
+              $concatArrays: [
+                { $cond: { if: { $isArray: "$library" }, then: ["$library"], else: ["$library"] } },
+                "$tags",
+              ],
+            },
+          ],
+        },
+      });
+      //Concatinate library and tags array and check if tagIdsArray is a subset of the concatinated array
+    }
+
+    const visualizations = await query
+      .populate({ path: "tags", select: "name -_id" })
+      .populate({ path: "creator", select: "username -_id" })
+      .populate({ path: "library", select: "name -_id" })
+      .select("-__v -code -description -externalLink");
+
+    res.json({ message: "Search results", data: visualizations, success: true });
+  } catch (error) {
+    console.error("Error searching visualizations:", error);
+    res.json({ message: "Error searching visualizations", success: false });
+  }
+
+});
+
+// GetSpecificVisualization - GET /api/visualizations/:id
+router.get("/:id", async (req, res) => {
+  const visualizationId = req.params.id;
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId)
+      .populate({ path: "tags", select: "name -_id" })
+      .populate({ path: "creator", select: "username -_id" })
+      .populate({ path: "library", select: "name -_id" })
+      .select("-__v -_id");
+    if (visualization) {
+      res.json({ message: "Visualization found", data: visualization, success: true });
+    } else {
+      res.json({ message: "Visualization not found", success: false });
+    }
+  } catch (error) {
+    console.error("Error finding visualization:", error);
+    res.json({ message: "Error finding visualization", success: false });
+  }
+});
 
 //PostVisualization - POST /api/visualizations
 router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   userId = req.decoded.userId;
 
-  const randomImageName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
-
-  const imageUploadToS3Params = {
-    Bucket: BUCKET_NAME,
-    Key: randomImageName() + ".png",
-    Body: req.file.buffer,
-    ContentType: req.file.mimetype,
-  };
-
   let response;
 
   try {
+    const randomImageName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
+
+    const imageUploadToS3Params = {
+      Bucket: BUCKET_NAME,
+      Key: randomImageName() + ".png",
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+
     response = await s3.upload(imageUploadToS3Params).promise();
   } catch (error) {
     console.error("Error uploading file:", error);
     res.json({ message: "Error uploading file", success: false });
   }
 
-  const tagNames = req.body.tags;
+  const tagNames = JSON.parse(req.body.tags);
   const tagIds = [];
 
   for (const tagName of tagNames) {
     try {
       const tag = await TagModel.findOne({ name: tagName });
+      console.log(tagName);
       if (tag) {
         tagIds.push(tag._id);
       }
