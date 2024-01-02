@@ -76,6 +76,25 @@ router.get("/", async (req, res) => {
 
 });
 
+//GetMyVisualization - GET /api/visualizations/my-visualizations
+//Must routes before /api/visualizations/:id to avoid conflict
+router.get("/my-visualizations", verifyToken, async (req, res) => {
+  userId = req.decoded.userId;
+
+  try {
+    const visualizations = await VisualizationModel.find({ creator: userId })
+      .populate({ path: "tags", select: "name -_id" })
+      .populate({ path: "creator", select: "username -_id" })
+      .populate({ path: "library", select: "name -_id" })
+      .select("-__v -code -description -externalLink");
+
+    res.json({ message: "My visualizations results", data: visualizations, success: true });
+  } catch (error) {
+    console.error("Error finding visualizations:", error);
+    res.json({ message: "Error finding visualizations", success: false });
+  }
+});
+
 // GetSpecificVisualization - GET /api/visualizations/:id
 router.get("/:id", async (req, res) => {
   const visualizationId = req.params.id;
@@ -163,5 +182,7 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
     res.json({ message: "Error saving visualization", success: false });
   }
 });
+
+
 
 module.exports = router;
