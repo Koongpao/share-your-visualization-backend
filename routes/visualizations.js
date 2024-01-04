@@ -77,7 +77,6 @@ router.get("/", async (req, res) => {
 });
 
 //GetMyVisualization - GET /api/visualizations/my-visualizations
-//Must routes before /api/visualizations/:id to avoid conflict
 router.get("/my-visualizations", verifyToken, async (req, res) => {
   const userId = req.decoded.userId;
 
