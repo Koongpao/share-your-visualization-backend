@@ -33,11 +33,11 @@ const router = Router();
 router.get("/", async (req, res) => {
   const searchQuery = req.query.search_query;
   const tags = req.query.tags;
-  console.log(searchQuery, tags)
+  console.log(searchQuery, tags);
   try {
     let query = VisualizationModel.find();
 
-    query = query.find({status: "approved"})
+    query = query.find({ status: "approved" });
 
     if (searchQuery) {
       query = query.find({ title: { $regex: searchQuery, $options: "i" } });
@@ -74,7 +74,6 @@ router.get("/", async (req, res) => {
     console.error("Error searching visualizations:", error);
     res.json({ message: "Error searching visualizations", success: false });
   }
-
 });
 
 //GetMyVisualization - GET /api/visualizations/my-visualizations
@@ -83,13 +82,19 @@ router.get("/my-visualizations", verifyToken, async (req, res) => {
   const userId = req.decoded.userId;
 
   try {
-    const visualizations = await VisualizationModel.find({ creator: userId })
-      .populate({ path: "tags", select: "name -_id" })
-      .populate({ path: "creator", select: "username -_id" })
-      .populate({ path: "library", select: "name -_id" })
-      .select("-__v -code -description -externalLink");
+    const user = await UsersModel.findById(userId)
+      .select("-_id visualizations")
+      .populate({
+        path: "visualizations",
+        select: "-__v -code -description -externalLink",
+        populate: [
+          { path: "tags", select: "name -_id" },
+          { path: "creator", select: "username -_id" },
+          { path: "library", select: "name -_id" },
+        ],
+      });
 
-    res.json({ message: "My visualizations results", data: visualizations, success: true });
+    res.json({ message: "My visualizations results", data: user.visualizations, success: true });
   } catch (error) {
     console.error("Error finding visualizations:", error);
     res.json({ message: "Error finding visualizations", success: false });
@@ -177,9 +182,11 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 
   try {
     const savedVisualization = await newVisualization.save();
+
     const user = await UsersModel.findById(userId);
     user.visualizations.push(savedVisualization._id);
-    await user.save()
+    await user.save();
+
     res.json({ message: "New visualization saved", success: true });
   } catch (error) {
     console.error("Error saving visualization:", error);
@@ -214,7 +221,7 @@ router.put("/:id/favorite", verifyToken, async (req, res) => {
 router.put("/:id/unfavorite", verifyToken, async (req, res) => {
   const userId = req.decoded.userId;
   const visualizationId = req.params.id;
-  
+
   try {
     const user = await UsersModel.findById(userId);
     if (!user) {
@@ -232,7 +239,6 @@ router.put("/:id/unfavorite", verifyToken, async (req, res) => {
     res.json({ message: "Error unfavoriting visualization", success: false });
   }
 });
-
 
 //LikeVisualization - PUT /api/visualizations/:id/like
 router.put("/:id/like", verifyToken, async (req, res) => {
@@ -283,8 +289,5 @@ router.put("/:id/unlike", verifyToken, async (req, res) => {
     res.json({ message: "Error unliking visualization", success: false });
   }
 });
-
-
-
 
 module.exports = router;
