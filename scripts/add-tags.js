@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const TagsModel = require("./models/tagSchema");
-require("./db/connection");
+const TagsModel = require("../models/tagSchema");
+require("../db/connection");
 
 const tagNames = [
   "d3.js",

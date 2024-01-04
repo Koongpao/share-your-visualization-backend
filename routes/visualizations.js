@@ -7,6 +7,7 @@ const AWS = require("aws-sdk");
 
 const VisualizationModel = require("../models/visualizationSchema");
 const TagModel = require("../models/tagSchema");
+const UsersModel = require("../models/userSchema");
 
 const BUCKET_NAME = process.env.BUCKET_NAME;
 const BUCKET_REGION = process.env.BUCKET_REGION;
@@ -79,7 +80,7 @@ router.get("/", async (req, res) => {
 //GetMyVisualization - GET /api/visualizations/my-visualizations
 //Must routes before /api/visualizations/:id to avoid conflict
 router.get("/my-visualizations", verifyToken, async (req, res) => {
-  userId = req.decoded.userId;
+  const userId = req.decoded.userId;
 
   try {
     const visualizations = await VisualizationModel.find({ creator: userId })
@@ -117,7 +118,7 @@ router.get("/:id", async (req, res) => {
 
 //PostVisualization - POST /api/visualizations
 router.post("/", verifyToken, upload.single("image"), async (req, res) => {
-  userId = req.decoded.userId;
+  const userId = req.decoded.userId;
 
   let response;
 
@@ -176,12 +177,112 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 
   try {
     const savedVisualization = await newVisualization.save();
+    const user = await UsersModel.findById(userId);
+    user.visualizations.push(savedVisualization._id);
     res.json({ message: "New visualization saved", success: true });
   } catch (error) {
     console.error("Error saving visualization:", error);
     res.json({ message: "Error saving visualization", success: false });
   }
 });
+
+//FavoriteVisualization - PUT /api/visualizations/:id/favorite
+router.put("/:id/favorite", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const user = await UsersModel.findById(userId);
+    if (!user) {
+      return res.json({ message: "User not found", success: false });
+    }
+    if (user.favorites.includes(visualizationId)) {
+      return res.json({ message: "Visualization already favorited", success: false });
+    }
+    user.favorites.push(visualizationId);
+    await user.save();
+
+    res.json({ message: "Visualization favorited", success: true });
+  } catch (error) {
+    console.error("Error favoriting visualization:", error);
+    res.json({ message: "Error favoriting visualization", success: false });
+  }
+});
+
+//UnfavoriteVisualization - PUT /api/visualizations/:id/unfavorite
+router.put("/:id/unfavorite", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+  
+  try {
+    const user = await UsersModel.findById(userId);
+    if (!user) {
+      return res.json({ message: "User not found", success: false });
+    }
+    if (!user.favorites.includes(visualizationId)) {
+      return res.json({ message: "Visualization not favorited", success: false });
+    }
+    user.favorites.pull(visualizationId);
+    await user.save();
+
+    res.json({ message: "Visualization unfavorited", success: true });
+  } catch (error) {
+    console.error("Error unfavoriting visualization:", error);
+    res.json({ message: "Error unfavoriting visualization", success: false });
+  }
+});
+
+
+//LikeVisualization - PUT /api/visualizations/:id/like
+router.put("/:id/like", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    if (visualization.likes.includes(userId)) {
+      return res.json({ message: "Visualization already liked", success: false });
+    }
+
+    visualization.likes.push(userId);
+    await visualization.save();
+
+    res.json({ message: "Visualization liked", success: true });
+  } catch (error) {
+    console.error("Error liking visualization:", error);
+    res.json({ message: "Error liking visualization", success: false });
+  }
+});
+
+//UnlikeVisualization - PUT /api/visualizations/:id/unlike
+router.put("/:id/unlike", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    if (!visualization.likes.includes(userId)) {
+      return res.json({ message: "Visualization not liked", success: false });
+    }
+
+    visualization.likes.pull(userId);
+    await visualization.save();
+
+    res.json({ message: "Visualization unliked", success: true });
+  } catch (error) {
+    console.error("Error unliking visualization:", error);
+    res.json({ message: "Error unliking visualization", success: false });
+  }
+});
+
 
 
 
