@@ -179,6 +179,7 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
     const savedVisualization = await newVisualization.save();
     const user = await UsersModel.findById(userId);
     user.visualizations.push(savedVisualization._id);
+    await user.save()
     res.json({ message: "New visualization saved", success: true });
   } catch (error) {
     console.error("Error saving visualization:", error);
