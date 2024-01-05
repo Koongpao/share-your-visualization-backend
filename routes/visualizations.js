@@ -100,6 +100,29 @@ router.get("/my-visualizations", verifyToken, async (req, res) => {
   }
 });
 
+// GetMyFavoriteVisualization - GET /api/visualizations/favorite-visualizations
+router.get("/favorite-visualizations", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  try {
+    const user = await UsersModel.findById(userId)
+      .select("-_id favorites")
+      .populate({
+        path: "visualizations",
+        select: "-__v -code -description -externalLink",
+        populate: [
+          { path: "tags", select: "name -_id" },
+          { path: "creator", select: "username -_id" },
+          { path: "library", select: "name -_id" },
+        ],
+      });
+
+    res.json({ message: "My favorite visualizations results", data: user.favorites, success: true });
+  } catch (error) {
+    console.error("Error finding favorite visualizations:", error);
+    res.json({ message: "Error finding favorite visualizations", success: false });
+  }
+});
+
 // GetSpecificVisualization - GET /api/visualizations/:id
 router.get("/:id", async (req, res) => {
   const visualizationId = req.params.id;
