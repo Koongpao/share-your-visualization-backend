@@ -289,4 +289,47 @@ router.put("/:id/unlike", verifyToken, async (req, res) => {
   }
 });
 
+//IsLiked - GET /api/visualizations/:id/is-liked
+router.get("/:id/is-liked", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    if (visualization.likes.includes(userId)) {
+      return res.json({ message: "Visualization is liked", data: true, success: true });
+    } else {
+      return res.json({ message: "Visualization is not liked", data: false, success: true });
+    }
+  } catch (error) {
+    console.error("Error checking if visualization is liked:", error);
+    res.json({ message: "Error checking if visualization is liked", success: false });
+  }
+});
+
+//IsFavorited - GET /api/visualizations/:id/is-favorited
+router.get("/:id/is-favorited", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const user = await UsersModel.findById(userId);
+
+    if (user.favorites.includes(visualizationId)) {
+      return res.json({ message: "Visualization is favorited", data: true, success: true });
+    } else {
+      return res.json({ message: "Visualization is not favorited", data: false, success: true });
+    }
+  } catch (error) {
+    console.error("Error checking if visualization is favorited:", error);
+    res.json({ message: "Error checking if visualization is favorited", success: false });
+  }
+});
+
+
+
 module.exports = router;
