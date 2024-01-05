@@ -107,7 +107,7 @@ router.get("/favorite-visualizations", verifyToken, async (req, res) => {
     const user = await UsersModel.findById(userId)
       .select("-_id favorites")
       .populate({
-        path: "visualizations",
+        path: "favorites",
         select: "-__v -code -description -externalLink",
         populate: [
           { path: "tags", select: "name -_id" },
