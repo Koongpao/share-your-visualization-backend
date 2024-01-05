@@ -204,15 +204,15 @@ router.put("/:id/favorite", verifyToken, async (req, res) => {
       return res.json({ message: "User not found", success: false });
     }
     if (user.favorites.includes(visualizationId)) {
-      return res.json({ message: "Visualization already favorited", success: false });
+      return res.json({ message: "Visualization Already Favorited", success: false });
     }
     user.favorites.push(visualizationId);
     await user.save();
 
-    res.json({ message: "Visualization favorited", success: true });
+    res.json({ message: "Visualization Favorited", success: true });
   } catch (error) {
     console.error("Error favoriting visualization:", error);
-    res.json({ message: "Error favoriting visualization", success: false });
+    res.json({ message: "Error Favoriting Visualization", success: false });
   }
 });
 
@@ -227,15 +227,15 @@ router.put("/:id/unfavorite", verifyToken, async (req, res) => {
       return res.json({ message: "User not found", success: false });
     }
     if (!user.favorites.includes(visualizationId)) {
-      return res.json({ message: "Visualization not favorited", success: false });
+      return res.json({ message: "Visualization Not Favorited", success: false });
     }
     user.favorites.pull(visualizationId);
     await user.save();
 
-    res.json({ message: "Visualization unfavorited", success: true });
+    res.json({ message: "Visualization Unfavorited", success: true });
   } catch (error) {
     console.error("Error unfavoriting visualization:", error);
-    res.json({ message: "Error unfavoriting visualization", success: false });
+    res.json({ message: "Error Unfavoriting Visualization", success: false });
   }
 });
 
@@ -251,16 +251,16 @@ router.put("/:id/like", verifyToken, async (req, res) => {
     }
 
     if (visualization.likes.includes(userId)) {
-      return res.json({ message: "Visualization already liked", success: false });
+      return res.json({ message: "Visualization Already Liked", success: false });
     }
 
     visualization.likes.push(userId);
     await visualization.save();
 
-    res.json({ message: "Visualization liked", success: true });
+    res.json({ message: "Visualization Liked", success: true });
   } catch (error) {
     console.error("Error liking visualization:", error);
-    res.json({ message: "Error liking visualization", success: false });
+    res.json({ message: "Error Liking Visualization", success: false });
   }
 });
 
@@ -276,16 +276,16 @@ router.put("/:id/unlike", verifyToken, async (req, res) => {
     }
 
     if (!visualization.likes.includes(userId)) {
-      return res.json({ message: "Visualization not liked", success: false });
+      return res.json({ message: "Visualization Not Liked", success: false });
     }
 
     visualization.likes.pull(userId);
     await visualization.save();
 
-    res.json({ message: "Visualization unliked", success: true });
+    res.json({ message: "Visualization Unliked", success: true });
   } catch (error) {
     console.error("Error unliking visualization:", error);
-    res.json({ message: "Error unliking visualization", success: false });
+    res.json({ message: "Error Unliking Visualization", success: false });
   }
 });
 
@@ -327,6 +327,30 @@ router.get("/:id/is-favorited", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Error checking if visualization is favorited:", error);
     res.json({ message: "Error checking if visualization is favorited", success: false });
+  }
+});
+
+//DeleteVisualizations - DELETE /api/visualizations/:id
+router.delete("/:id", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const visualizationId = req.params.id;
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    if (visualization.creator.toString() !== userId) {
+      return res.json({ message: "Visualization not created by user", success: false });
+    }
+
+    await visualization.delete();
+
+    res.json({ message: "Visualization deleted", success: true });
+  } catch (error) {
+    console.error("Error deleting visualization:", error);
+    res.json({ message: "Error deleting visualization", success: false });
   }
 });
 
