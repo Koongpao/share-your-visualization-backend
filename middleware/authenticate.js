@@ -4,7 +4,7 @@ require("dotenv").config();
 const secretKey = process.env.SECRET_KEY;
 
 const verifyToken = (req, res, next) => {
-  const token = req.header("Authorization");
+  const token = req.header.authorization
   if (!token) {
     return res.status(401).json({ message: "You are not logged in", success: false, technicalMessage: "No token provided" });
   }
