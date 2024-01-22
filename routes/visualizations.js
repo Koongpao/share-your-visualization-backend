@@ -123,6 +123,29 @@ router.get("/favorite-visualizations", verifyToken, async (req, res) => {
   }
 });
 
+//GetPendingVisualizations - GET /api/visualizations/pending
+router.get("/pending", verifyToken, async (req, res) => {
+  const userRole = req.decoded.role;
+
+  try {
+    if (userRole !== "admin") {
+      return res.json({ message: "User is not admin", success: false });
+    }
+
+    const visualizations = await VisualizationModel.find({ status: "pending" })
+      .populate({ path: "tags", select: "name -_id" })
+      .populate({ path: "creator", select: "username -_id" })
+      .populate({ path: "library", select: "name -_id" })
+      .select("-__v -code -description -externalLink");
+
+    res.json({ message: "Pending visualizations", data: visualizations, success: true });
+  } catch (error) {
+    console.error("Error getting pending visualizations:", error);
+    res.json({ message: "Error getting pending visualizations", success: false });
+  }
+});
+
+
 // GetSpecificVisualization - GET /api/visualizations/:id
 router.get("/:id", async (req, res) => {
   const visualizationId = req.params.id;
@@ -376,6 +399,58 @@ router.delete("/:id", verifyToken, async (req, res) => {
     res.json({ message: "Error deleting visualization", success: false });
   }
 });
+
+//ApproveVisualization - PUT /api/visualizations/:id/approve
+router.put("/:id/approve", verifyToken, async (req, res) => {
+  const userRole = req.decoded.role;
+  const visualizationId = req.params.id;
+
+  if (userRole !== "admin") {
+    return res.json({ message: "User is not admin", success: false });
+  }
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    visualization.status = "approved";
+    await visualization.save();
+
+    res.json({ message: "Visualization status changed to approve", success: true });
+  } catch (error) {
+    console.error("Error changing visualization status to approve:", error);
+    res.json({ message: "Error changing visualization status to approve", success: false });
+  }
+});
+
+//DisapproveVisualization - PUT /api/visualizations/:id/disapprove
+router.put("/:id/disapprove", verifyToken, async (req, res) => {
+  const userRole = req.decoded.role;
+  const visualizationId = req.params.id;
+
+  if (userRole !== "admin") {
+    return res.json({ message: "User is not admin", success: false });
+  }
+
+  try {
+    const visualization = await VisualizationModel.findById(visualizationId);
+    if (!visualization) {
+      return res.json({ message: "Visualization not found", success: false });
+    }
+
+    visualization.status = "disapproved";
+    await visualization.save();
+
+    res.json({ message: "Visualization status changed to disapprove", success: true });
+  } catch (error) {
+    console.error("Error changing visualization status to disapprove:", error);
+    res.json({ message: "Error changing visualization status to disapprove", success: false });
+  }
+});
+
+
 
 
 
