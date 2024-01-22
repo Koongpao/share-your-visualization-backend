@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const TagsModel = require("../models/tagSchema");
+const verifyToken = require("../middleware/authenticate");
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.get("/requested", verifyToken, async (req, res) => {
   if (userRole !== "admin") {
     return res.status(403).json({ success: false, message: "You are not authorized to access this route" });
   }
-  
+
   try {
     const tags = await TagsModel.find({ is_library: false, status: "pending" }).select("-_id -__v -created_date");
 
