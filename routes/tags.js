@@ -54,4 +54,34 @@ router.post("/", async (req, res) => {
   }
 });
 
+//GetRequestedTags - GET /api/tags/requested
+router.get("/requested", verifyToken, async (req, res) => {
+  userRole = req.decoded.role;
+
+  if (userRole !== "admin") {
+    return res.status(403).json({ success: false, message: "You are not authorized to access this route" });
+  }
+  
+  try {
+    const tags = await TagsModel.find({ is_library: false, status: "pending" }).select("-_id -__v -created_date");
+
+    const libraryTags = await TagsModel.find({ is_library: true, status: "pending"}).select("-_id -__v -created_date");
+
+    const response = {
+      success: true,
+      message: "Tags retrieved successfully",
+      data: {
+        library: libraryTags,
+        tags,
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to retrieve tags list" });
+  }
+});
+
+
 module.exports = router;
