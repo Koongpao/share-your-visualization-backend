@@ -86,6 +86,7 @@ router.get("/my-visualizations", verifyToken, async (req, res) => {
       .populate({
         path: "visualizations",
         select: "-__v -code -description -externalLink",
+        match: { status: { $ne: 'deleted' } },
         populate: [
           { path: "tags", select: "name -_id" },
           { path: "creator", select: "username -_id" },
@@ -109,6 +110,7 @@ router.get("/favorite-visualizations", verifyToken, async (req, res) => {
       .populate({
         path: "favorites",
         select: "-__v -code -description -externalLink",
+        match: { status: { $ne: 'deleted' } },
         populate: [
           { path: "tags", select: "name -_id" },
           { path: "creator", select: "username -_id" },
