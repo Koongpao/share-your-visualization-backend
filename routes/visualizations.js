@@ -29,11 +29,12 @@ upload.single("image");
 
 const router = Router();
 
-// SearchVisualization - GET /api/visualizations?search_query=&?tags=
+// SearchVisualization - GET /api/visualizations?search_query=&?tags=&page=?
 router.get("/", async (req, res) => {
   const searchQuery = req.query.search_query;
   const tags = req.query.tags;
-  console.log(searchQuery, tags);
+  const page = Number(req.query.page) || 1;
+  const limit = 12;
   try {
     let query = VisualizationModel.find();
 
@@ -63,13 +64,18 @@ router.get("/", async (req, res) => {
       //Concatinate library and tags array and check if tagIdsArray is a subset of the concatinated array
     }
 
+    const totalDocuments = await VisualizationModel.countDocuments(query);
+    const totalPages = Math.ceil(totalDocuments / limit);
+
     const visualizations = await query
+      .skip((page - 1) * limit)
+      .limit(limit)
       .populate({ path: "tags", select: "name -_id" })
       .populate({ path: "creator", select: "username -_id" })
       .populate({ path: "library", select: "name -_id" })
       .select("-__v -code -description -externalLink");
 
-    res.json({ message: "Search results", data: visualizations, success: true });
+    res.json({ message: "Search results", data: visualizations, success: true, totalPages: totalPages });
   } catch (error) {
     console.error("Error searching visualizations:", error);
     res.json({ message: "Error searching visualizations", success: false });
@@ -86,7 +92,7 @@ router.get("/my-visualizations", verifyToken, async (req, res) => {
       .populate({
         path: "visualizations",
         select: "-__v -code -description -externalLink",
-        match: { status: { $ne: 'deleted' } },
+        match: { status: { $ne: "deleted" } },
         populate: [
           { path: "tags", select: "name -_id" },
           { path: "creator", select: "username -_id" },
@@ -110,7 +116,7 @@ router.get("/favorite-visualizations", verifyToken, async (req, res) => {
       .populate({
         path: "favorites",
         select: "-__v -code -description -externalLink",
-        match: { status: { $ne: 'deleted' } },
+        match: { status: { $ne: "deleted" } },
         populate: [
           { path: "tags", select: "name -_id" },
           { path: "creator", select: "username -_id" },
@@ -146,7 +152,6 @@ router.get("/pending", verifyToken, async (req, res) => {
     res.json({ message: "Error getting pending visualizations", success: false });
   }
 });
-
 
 // GetSpecificVisualization - GET /api/visualizations/:id
 router.get("/:id", async (req, res) => {
@@ -452,9 +457,5 @@ router.put("/:id/disapprove", verifyToken, async (req, res) => {
     res.json({ message: "Error changing visualization status to disapprove", success: false });
   }
 });
-
-
-
-
 
 module.exports = router;
