@@ -391,7 +391,8 @@ router.delete("/:id", verifyToken, async (req, res) => {
       return res.json({ message: "Visualization not created by user", success: false });
     }
 
-    await visualization.delete();
+    visualization.status = "deleted";
+    await visualization.save();
 
     res.json({ message: "Visualization deleted", success: true });
   } catch (error) {

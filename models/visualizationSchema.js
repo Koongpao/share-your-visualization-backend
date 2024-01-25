@@ -46,7 +46,7 @@ const visualizationSchema = new mongoose.Schema({
   ],
   status: {
     type: String,
-    enum: ["approved", "pending", "disapproved"],
+    enum: ["approved", "pending", "disapproved", "deleted"],
     default: "pending",
   },
 });
