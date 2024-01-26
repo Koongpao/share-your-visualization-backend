@@ -65,6 +65,8 @@ router.get("/", async (req, res) => {
     }
 
     const totalDocuments = await VisualizationModel.countDocuments(query);
+    const startIndex = totalDocuments > 0 ? (page - 1) * limit + 1 : 0;
+    const endIndex = Math.min(page * limit, totalDocuments);
     const totalPages = Math.ceil(totalDocuments / limit);
 
     const visualizations = await query
@@ -75,7 +77,16 @@ router.get("/", async (req, res) => {
       .populate({ path: "library", select: "name -_id" })
       .select("-__v -code -description -externalLink");
 
-    res.json({ message: "Search results", data: visualizations, success: true, totalPages: totalPages });
+    const pagination = {
+      currentPage: page,
+      totalDocuments: totalDocuments,
+      totalPages: totalPages,
+      startIndex: startIndex,
+      endIndex: endIndex,
+    };
+    
+
+    res.json({ message: "Search results", data: visualizations, success: true, pagination: pagination});
   } catch (error) {
     console.error("Error searching visualizations:", error);
     res.json({ message: "Error searching visualizations", success: false });
