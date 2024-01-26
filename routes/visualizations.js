@@ -29,12 +29,15 @@ upload.single("image");
 
 const router = Router();
 
-// SearchVisualization - GET /api/visualizations?search_query=&?tags=&page=?
+// SearchVisualization - GET /api/visualizations?search_query=&?tags=&page=?&sortby=
 router.get("/", async (req, res) => {
   const searchQuery = req.query.search_query;
   const tags = req.query.tags;
   const page = Number(req.query.page) || 1;
   const limit = 12;
+  const sortby = req.query.sortby || "date"; 
+  const order = req.query.order || "desc";
+  //Default to date descending
   try {
     let query = VisualizationModel.find();
 
@@ -64,6 +67,13 @@ router.get("/", async (req, res) => {
       //Concatinate library and tags array and check if tagIdsArray is a subset of the concatinated array
     }
 
+    if (sortby === "date") {
+      query = query.sort({ created_date: order === "desc" ? -1 : 1 });
+    }
+    if (sortby === "likes") {
+      query = query.sort({ likesCount: order === "desc" ? -1 : 1 });
+    }
+
     const totalDocuments = await VisualizationModel.countDocuments(query);
     const startIndex = totalDocuments > 0 ? (page - 1) * limit + 1 : 0;
     const endIndex = Math.min(page * limit, totalDocuments);
@@ -84,9 +94,8 @@ router.get("/", async (req, res) => {
       startIndex: startIndex,
       endIndex: endIndex,
     };
-    
 
-    res.json({ message: "Search results", data: visualizations, success: true, pagination: pagination});
+    res.json({ message: "Search results", data: visualizations, success: true, pagination: pagination });
   } catch (error) {
     console.error("Error searching visualizations:", error);
     res.json({ message: "Error searching visualizations", success: false });
@@ -319,6 +328,7 @@ router.put("/:id/like", verifyToken, async (req, res) => {
     }
 
     visualization.likes.push(userId);
+    visualization.likesCount = visualization.likesCount + 1;
     await visualization.save();
 
     res.json({ message: "Visualization Liked", success: true });
@@ -344,6 +354,7 @@ router.put("/:id/unlike", verifyToken, async (req, res) => {
     }
 
     visualization.likes.pull(userId);
+    visualization.likesCount = visualization.likesCount - 1;
     await visualization.save();
 
     res.json({ message: "Visualization Unliked", success: true });

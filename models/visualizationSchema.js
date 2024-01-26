@@ -44,6 +44,10 @@ const visualizationSchema = new mongoose.Schema({
       ref: "users",
     },
   ],
+  likesCount: {
+    type: Number,
+    default: 0,
+  },
   status: {
     type: String,
     enum: ["approved", "pending", "disapproved", "deleted"],

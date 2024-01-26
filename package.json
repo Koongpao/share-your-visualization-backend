@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
-    "addtag": "node ./scripts/add-tags.js"
+    "addtag": "node ./scripts/add-tags.js",
+    "flex": "node ./scripts/flexible-scripts.js"
   },
   "keywords": [],
   "author": "",
